@@ -26,7 +26,7 @@ async def strtCap(bot, message):
     keyboard = InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/{bot_username}?startchannel=true")
+                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/Testmikosbot?startchannel=true")
             ],[
                 InlineKeyboardButton("Hᴇʟᴘ", callback_data="help"),
                 InlineKeyboardButton("Aʙᴏᴜᴛ", callback_data="about")
