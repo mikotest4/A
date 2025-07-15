@@ -26,7 +26,7 @@ async def strtCap(bot, message):
     keyboard = InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/Testmikosbot?startchannel=true")
+                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/{bot_username}?startchannel=true")
             ],[
                 InlineKeyboardButton("Hᴇʟᴘ", callback_data="help"),
                 InlineKeyboardButton("Aʙᴏᴜᴛ", callback_data="about")
@@ -94,6 +94,10 @@ async def setCap(bot, message):
     print(f"set_cap command received in chat: {message.chat.id}")
     
     try:
+        # Check if message is from a user (not a channel)
+        if not message.from_user:
+            return await message.reply("❌ This command can only be used by users, not channels!")
+        
         # Check if user is admin (for groups/channels)
         if message.chat.type in ["group", "supergroup", "channel"]:
             user_id = message.from_user.id
@@ -147,6 +151,10 @@ async def delCap(bot, message):
     print(f"del_cap command received in chat: {message.chat.id}")
     
     try:
+        # Check if message is from a user (not a channel)
+        if not message.from_user:
+            return await message.reply("❌ This command can only be used by users, not channels!")
+        
         # Check if user is admin (for groups/channels)
         if message.chat.type in ["group", "supergroup", "channel"]:
             user_id = message.from_user.id
@@ -172,12 +180,16 @@ async def delCap(bot, message):
         print(f"Error in del_cap: {e}")
         await message.reply(f"❌ Error deleting caption: {str(e)}")
 
-# NEW REMOVE_WORD COMMAND
+# NEW REMOVE_WORD COMMAND - FIXED
 @Client.on_message(filters.command("remove_word") & (filters.group | filters.channel))
 async def remove_word_command(bot, message):
     print(f"remove_word command received in chat: {message.chat.id}")
     
     try:
+        # Check if message is from a user (not a channel)
+        if not message.from_user:
+            return await message.reply("❌ This command can only be used by users, not channels!")
+        
         # Check if user is admin (for groups/channels)
         if message.chat.type in ["group", "supergroup", "channel"]:
             user_id = message.from_user.id
@@ -203,9 +215,13 @@ async def remove_word_command(bot, message):
         print(f"Error in remove_word: {e}")
         await message.reply(f"❌ Error: {str(e)}")
 
-# Handle word input for remove_word command
+# Handle word input for remove_word command - FIXED
 @Client.on_message(filters.text & (filters.group | filters.channel))
 async def handle_word_input(bot, message):
+    # Check if message is from a user (not a channel)
+    if not message.from_user:
+        return
+    
     user_chat_key = f"{message.from_user.id}_{message.chat.id}"
     
     # Check if user is waiting for word input
@@ -240,10 +256,14 @@ async def handle_word_input(bot, message):
             if user_chat_key in waiting_for_words:
                 del waiting_for_words[user_chat_key]
 
-# NEW COMMAND: Show current delete words list
+# NEW COMMAND: Show current delete words list - FIXED
 @Client.on_message(filters.command("show_delete_words") & (filters.group | filters.channel))
 async def show_delete_words(bot, message):
     try:
+        # Check if message is from a user (not a channel)
+        if not message.from_user:
+            return await message.reply("❌ This command can only be used by users, not channels!")
+        
         # Check if user is admin
         if message.chat.type in ["group", "supergroup", "channel"]:
             user_id = message.from_user.id
@@ -267,10 +287,14 @@ async def show_delete_words(bot, message):
     except Exception as e:
         await message.reply(f"❌ Error: {str(e)}")
 
-# NEW COMMAND: Clear delete words list
+# NEW COMMAND: Clear delete words list - FIXED
 @Client.on_message(filters.command("clear_delete_words") & (filters.group | filters.channel))
 async def clear_delete_words_command(bot, message):
     try:
+        # Check if message is from a user (not a channel)
+        if not message.from_user:
+            return await message.reply("❌ This command can only be used by users, not channels!")
+        
         # Check if user is admin
         if message.chat.type in ["group", "supergroup", "channel"]:
             user_id = message.from_user.id
