@@ -26,7 +26,7 @@ async def strtCap(bot, message):
     keyboard = InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/Testmikosbot?startchannel=true")
+                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/{bot_username}?startchannel=true")
             ],[
                 InlineKeyboardButton("Hᴇʟᴘ", callback_data="help"),
                 InlineKeyboardButton("Aʙᴏᴜᴛ", callback_data="about")
@@ -88,17 +88,36 @@ async def restart_bot(b, m):
     await silicon.edit("**✅️ 𝙱𝙾𝚃 𝙸𝚂 𝚁𝙴𝚂𝚃𝙰𝚁𝚃𝙴𝙳. 𝙽𝙾𝚆 𝚈𝙾𝚄 𝙲𝙰𝙽 𝚄𝚂𝙴 𝙼𝙴**")
     os.execl(sys.executable, sys.executable, *sys.argv)
 
-# UPDATED: set_cap command - ANY USER CAN USE
-@Client.on_message(filters.command("set_cap") & (filters.group | filters.channel))
+# UPDATED: set_cap command - Works in DMs, Groups, and Channels
+@Client.on_message(filters.command("set_cap") & (filters.private | filters.group | filters.channel))
 async def setCap(bot, message):
     print(f"set_cap command received in chat: {message.chat.id}")
     
     try:
-        # Check if message is from a user (not a channel)
-        if not message.from_user:
-            return await message.reply("❌ This command can only be used by users, not channels!")
+        # Handle private messages (DMs)
+        if message.chat.type == "private":
+            # In DMs, any user can use this command
+            pass
         
-        # NO ADMIN CHECK - ANY USER CAN USE THIS COMMAND
+        # Handle channel messages
+        elif message.chat.type == "channel":
+            # If it's a channel message, allow it (channel owner can use commands)
+            if not message.from_user:
+                # This is a channel posting - allow it
+                pass
+            else:
+                # This is a user in channel - check if they're admin
+                try:
+                    member = await bot.get_chat_member(message.chat.id, message.from_user.id)
+                    if member.status not in ["administrator", "creator"]:
+                        return await message.reply("❌ You must be an admin to use this command in channels!")
+                except:
+                    pass
+        
+        # Handle group messages
+        elif message.chat.type in ["group", "supergroup"]:
+            if not message.from_user:
+                return await message.reply("❌ This command can only be used by users!")
         
         # Check if caption is provided
         if len(message.command) < 2:
@@ -134,17 +153,36 @@ async def setCap(bot, message):
         print(f"Error in set_cap: {e}")
         await message.reply(f"❌ Error setting caption: {str(e)}")
 
-# UPDATED: del_cap command - ANY USER CAN USE
-@Client.on_message(filters.command("del_cap") & (filters.group | filters.channel))
+# UPDATED: del_cap command - Works in DMs, Groups, and Channels
+@Client.on_message(filters.command("del_cap") & (filters.private | filters.group | filters.channel))
 async def delCap(bot, message):
     print(f"del_cap command received in chat: {message.chat.id}")
     
     try:
-        # Check if message is from a user (not a channel)
-        if not message.from_user:
-            return await message.reply("❌ This command can only be used by users, not channels!")
+        # Handle private messages (DMs)
+        if message.chat.type == "private":
+            # In DMs, any user can use this command
+            pass
         
-        # NO ADMIN CHECK - ANY USER CAN USE THIS COMMAND
+        # Handle channel messages
+        elif message.chat.type == "channel":
+            # If it's a channel message, allow it (channel owner can use commands)
+            if not message.from_user:
+                # This is a channel posting - allow it
+                pass
+            else:
+                # This is a user in channel - check if they're admin
+                try:
+                    member = await bot.get_chat_member(message.chat.id, message.from_user.id)
+                    if member.status not in ["administrator", "creator"]:
+                        return await message.reply("❌ You must be an admin to use this command in channels!")
+                except:
+                    pass
+        
+        # Handle group messages
+        elif message.chat.type in ["group", "supergroup"]:
+            if not message.from_user:
+                return await message.reply("❌ This command can only be used by users!")
         
         chat_id = message.chat.id
         result = await chnl_ids.delete_one({"chnl_id": chat_id})
@@ -158,20 +196,42 @@ async def delCap(bot, message):
         print(f"Error in del_cap: {e}")
         await message.reply(f"❌ Error deleting caption: {str(e)}")
 
-# UPDATED: remove_word command - ANY USER CAN USE
-@Client.on_message(filters.command("remove_word") & (filters.group | filters.channel))
+# UPDATED: remove_word command - Works in DMs, Groups, and Channels
+@Client.on_message(filters.command("remove_word") & (filters.private | filters.group | filters.channel))
 async def remove_word_command(bot, message):
     print(f"remove_word command received in chat: {message.chat.id}")
     
     try:
-        # Check if message is from a user (not a channel)
-        if not message.from_user:
-            return await message.reply("❌ This command can only be used by users, not channels!")
+        # Handle private messages (DMs)
+        if message.chat.type == "private":
+            # In DMs, any user can use this command
+            pass
         
-        # NO ADMIN CHECK - ANY USER CAN USE THIS COMMAND
+        # Handle channel messages
+        elif message.chat.type == "channel":
+            # If it's a channel message, allow it (channel owner can use commands)
+            if not message.from_user:
+                # This is a channel posting - allow it
+                pass
+            else:
+                # This is a user in channel - check if they're admin
+                try:
+                    member = await bot.get_chat_member(message.chat.id, message.from_user.id)
+                    if member.status not in ["administrator", "creator"]:
+                        return await message.reply("❌ You must be an admin to use this command in channels!")
+                except:
+                    pass
+        
+        # Handle group messages
+        elif message.chat.type in ["group", "supergroup"]:
+            if not message.from_user:
+                return await message.reply("❌ This command can only be used by users!")
+        
+        # Use chat_id as user identifier for channels, user_id for users
+        user_identifier = message.from_user.id if message.from_user else message.chat.id
         
         # Set waiting status for this user and chat
-        waiting_for_words[f"{message.from_user.id}_{message.chat.id}"] = message.chat.id
+        waiting_for_words[f"{user_identifier}_{message.chat.id}"] = message.chat.id
         
         await message.reply(
             "📝 **Send words separated by space to delete them from caption/filename...**\n\n"
@@ -182,14 +242,12 @@ async def remove_word_command(bot, message):
         print(f"Error in remove_word: {e}")
         await message.reply(f"❌ Error: {str(e)}")
 
-# Handle word input for remove_word command
-@Client.on_message(filters.text & (filters.group | filters.channel))
+# UPDATED: Handle word input for remove_word command - Works in DMs, Groups, and Channels
+@Client.on_message(filters.text & (filters.private | filters.group | filters.channel))
 async def handle_word_input(bot, message):
-    # Check if message is from a user (not a channel)
-    if not message.from_user:
-        return
-    
-    user_chat_key = f"{message.from_user.id}_{message.chat.id}"
+    # Use chat_id as user identifier for channels, user_id for users
+    user_identifier = message.from_user.id if message.from_user else message.chat.id
+    user_chat_key = f"{user_identifier}_{message.chat.id}"
     
     # Check if user is waiting for word input
     if user_chat_key in waiting_for_words:
@@ -223,15 +281,34 @@ async def handle_word_input(bot, message):
             if user_chat_key in waiting_for_words:
                 del waiting_for_words[user_chat_key]
 
-# UPDATED: Show current delete words list - ANY USER CAN USE
-@Client.on_message(filters.command("show_delete_words") & (filters.group | filters.channel))
+# UPDATED: Show current delete words list - Works in DMs, Groups, and Channels
+@Client.on_message(filters.command("show_delete_words") & (filters.private | filters.group | filters.channel))
 async def show_delete_words(bot, message):
     try:
-        # Check if message is from a user (not a channel)
-        if not message.from_user:
-            return await message.reply("❌ This command can only be used by users, not channels!")
+        # Handle private messages (DMs)
+        if message.chat.type == "private":
+            # In DMs, any user can use this command
+            pass
         
-        # NO ADMIN CHECK - ANY USER CAN USE THIS COMMAND
+        # Handle channel messages
+        elif message.chat.type == "channel":
+            # If it's a channel message, allow it (channel owner can use commands)
+            if not message.from_user:
+                # This is a channel posting - allow it
+                pass
+            else:
+                # This is a user in channel - check if they're admin
+                try:
+                    member = await bot.get_chat_member(message.chat.id, message.from_user.id)
+                    if member.status not in ["administrator", "creator"]:
+                        return await message.reply("❌ You must be an admin to use this command in channels!")
+                except:
+                    pass
+        
+        # Handle group messages
+        elif message.chat.type in ["group", "supergroup"]:
+            if not message.from_user:
+                return await message.reply("❌ This command can only be used by users!")
         
         words_list = await get_delete_words(message.chat.id)
         
@@ -244,15 +321,34 @@ async def show_delete_words(bot, message):
     except Exception as e:
         await message.reply(f"❌ Error: {str(e)}")
 
-# UPDATED: Clear delete words list - ANY USER CAN USE
-@Client.on_message(filters.command("clear_delete_words") & (filters.group | filters.channel))
+# UPDATED: Clear delete words list - Works in DMs, Groups, and Channels
+@Client.on_message(filters.command("clear_delete_words") & (filters.private | filters.group | filters.channel))
 async def clear_delete_words_command(bot, message):
     try:
-        # Check if message is from a user (not a channel)
-        if not message.from_user:
-            return await message.reply("❌ This command can only be used by users, not channels!")
+        # Handle private messages (DMs)
+        if message.chat.type == "private":
+            # In DMs, any user can use this command
+            pass
         
-        # NO ADMIN CHECK - ANY USER CAN USE THIS COMMAND
+        # Handle channel messages
+        elif message.chat.type == "channel":
+            # If it's a channel message, allow it (channel owner can use commands)
+            if not message.from_user:
+                # This is a channel posting - allow it
+                pass
+            else:
+                # This is a user in channel - check if they're admin
+                try:
+                    member = await bot.get_chat_member(message.chat.id, message.from_user.id)
+                    if member.status not in ["administrator", "creator"]:
+                        return await message.reply("❌ You must be an admin to use this command in channels!")
+                except:
+                    pass
+        
+        # Handle group messages
+        elif message.chat.type in ["group", "supergroup"]:
+            if not message.from_user:
+                return await message.reply("❌ This command can only be used by users!")
         
         await clear_delete_words(message.chat.id)
         await message.reply("✅ **Delete words list cleared successfully!**")
@@ -307,7 +403,8 @@ def extract_year(default_caption):
     match = re.search(r'\b(19[0-9]{2}|20[0-2][0-9]|2030)\b', default_caption)
     return match.group(1) if match else "2024"
 
-@Client.on_message((filters.group | filters.channel) & filters.media & ~filters.command(["set_cap", "del_cap", "remove_word", "show_delete_words", "clear_delete_words"]))
+# UPDATED: Auto-caption for media - Works in DMs, Groups, and Channels
+@Client.on_message((filters.private | filters.group | filters.channel) & filters.media & ~filters.command(["set_cap", "del_cap", "remove_word", "show_delete_words", "clear_delete_words"]))
 async def reCap(bot, message):
     if not message.media:
         return
