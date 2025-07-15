@@ -11,14 +11,22 @@ from pyrogram.errors import FloodWait
 from pyrogram.types import *
 from pyrogram import errors
 
+# Dictionary to store users waiting for word input
+waiting_for_words = {}
+
 @Client.on_message(filters.command("start") & filters.private)
 async def strtCap(bot, message):
     user_id = int(message.from_user.id)
     await insert(user_id)
+    
+    # Get bot info to access username
+    bot_info = await bot.get_me()
+    bot_username = bot_info.username
+    
     keyboard = InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/Testmikosbot?startchannel=true")
+                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/{bot_username}?startchannel=true")
             ],[
                 InlineKeyboardButton("Hᴇʟᴘ", callback_data="help"),
                 InlineKeyboardButton("Aʙᴏᴜᴛ", callback_data="about")
@@ -164,6 +172,139 @@ async def delCap(bot, message):
         print(f"Error in del_cap: {e}")
         await message.reply(f"❌ Error deleting caption: {str(e)}")
 
+# NEW REMOVE_WORD COMMAND
+@Client.on_message(filters.command("remove_word") & (filters.group | filters.channel))
+async def remove_word_command(bot, message):
+    print(f"remove_word command received in chat: {message.chat.id}")
+    
+    try:
+        # Check if user is admin (for groups/channels)
+        if message.chat.type in ["group", "supergroup", "channel"]:
+            user_id = message.from_user.id
+            chat_id = message.chat.id
+            
+            try:
+                member = await bot.get_chat_member(chat_id, user_id)
+                if member.status not in ["administrator", "creator"]:
+                    return await message.reply("❌ You must be an admin to use this command!")
+            except Exception as e:
+                print(f"Error checking admin status: {e}")
+                return await message.reply("❌ Error checking admin status!")
+        
+        # Set waiting status for this user and chat
+        waiting_for_words[f"{message.from_user.id}_{message.chat.id}"] = message.chat.id
+        
+        await message.reply(
+            "📝 **Send words separated by space to delete them from caption/filename...**\n\n"
+            "*(Send /cancel to cancel this operation)*"
+        )
+        
+    except Exception as e:
+        print(f"Error in remove_word: {e}")
+        await message.reply(f"❌ Error: {str(e)}")
+
+# Handle word input for remove_word command
+@Client.on_message(filters.text & (filters.group | filters.channel))
+async def handle_word_input(bot, message):
+    user_chat_key = f"{message.from_user.id}_{message.chat.id}"
+    
+    # Check if user is waiting for word input
+    if user_chat_key in waiting_for_words:
+        if message.text.lower() == "/cancel":
+            del waiting_for_words[user_chat_key]
+            await message.reply("❌ **Operation cancelled!**")
+            return
+        
+        # Don't process commands while waiting for words
+        if message.text.startswith("/"):
+            return
+        
+        try:
+            # Get words from user input
+            words_to_delete = message.text.split()
+            chat_id = waiting_for_words[user_chat_key]
+            
+            # Add words to delete list
+            await add_delete_words(chat_id, words_to_delete)
+            
+            # Remove waiting status
+            del waiting_for_words[user_chat_key]
+            
+            # Show success message
+            words_text = ", ".join(words_to_delete)
+            await message.reply(f"✅ **Words added to delete list:** {words_text}")
+            
+        except Exception as e:
+            print(f"Error processing words: {e}")
+            await message.reply(f"❌ Error processing words: {str(e)}")
+            if user_chat_key in waiting_for_words:
+                del waiting_for_words[user_chat_key]
+
+# NEW COMMAND: Show current delete words list
+@Client.on_message(filters.command("show_delete_words") & (filters.group | filters.channel))
+async def show_delete_words(bot, message):
+    try:
+        # Check if user is admin
+        if message.chat.type in ["group", "supergroup", "channel"]:
+            user_id = message.from_user.id
+            chat_id = message.chat.id
+            
+            try:
+                member = await bot.get_chat_member(chat_id, user_id)
+                if member.status not in ["administrator", "creator"]:
+                    return await message.reply("❌ You must be an admin to use this command!")
+            except Exception as e:
+                return await message.reply("❌ Error checking admin status!")
+        
+        words_list = await get_delete_words(message.chat.id)
+        
+        if words_list:
+            words_text = ", ".join(words_list)
+            await message.reply(f"📝 **Current delete words list:**\n\n{words_text}")
+        else:
+            await message.reply("📝 **No words in delete list.**")
+            
+    except Exception as e:
+        await message.reply(f"❌ Error: {str(e)}")
+
+# NEW COMMAND: Clear delete words list
+@Client.on_message(filters.command("clear_delete_words") & (filters.group | filters.channel))
+async def clear_delete_words_command(bot, message):
+    try:
+        # Check if user is admin
+        if message.chat.type in ["group", "supergroup", "channel"]:
+            user_id = message.from_user.id
+            chat_id = message.chat.id
+            
+            try:
+                member = await bot.get_chat_member(chat_id, user_id)
+                if member.status not in ["administrator", "creator"]:
+                    return await message.reply("❌ You must be an admin to use this command!")
+            except Exception as e:
+                return await message.reply("❌ Error checking admin status!")
+        
+        await clear_delete_words(message.chat.id)
+        await message.reply("✅ **Delete words list cleared successfully!**")
+        
+    except Exception as e:
+        await message.reply(f"❌ Error: {str(e)}")
+
+def remove_unwanted_words(text, words_to_remove):
+    """Remove unwanted words from text"""
+    if not text or not words_to_remove:
+        return text
+    
+    # Create a pattern to match any of the words (case insensitive)
+    pattern = r'\b(?:' + '|'.join(re.escape(word) for word in words_to_remove) + r')\b'
+    
+    # Remove the words
+    cleaned_text = re.sub(pattern, '', text, flags=re.IGNORECASE)
+    
+    # Clean up extra spaces
+    cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip()
+    
+    return cleaned_text
+
 def extract_language(default_caption):
     if not default_caption:
         return "Hindi-English"
@@ -195,7 +336,7 @@ def extract_year(default_caption):
     match = re.search(r'\b(19[0-9]{2}|20[0-2][0-9]|2030)\b', default_caption)
     return match.group(1) if match else "2024"
 
-@Client.on_message((filters.group | filters.channel) & filters.media & ~filters.command(["set_cap", "del_cap"]))
+@Client.on_message((filters.group | filters.channel) & filters.media & ~filters.command(["set_cap", "del_cap", "remove_word", "show_delete_words", "clear_delete_words"]))
 async def reCap(bot, message):
     if not message.media:
         return
@@ -229,6 +370,12 @@ async def reCap(bot, message):
     # Clean file name
     file_name = re.sub(r"@\w+\s*", "", file_name).replace("_", " ").replace(".", " ")
     
+    # Get delete words list and remove unwanted words from filename and caption
+    delete_words_list = await get_delete_words(chnl_id)
+    if delete_words_list:
+        file_name = remove_unwanted_words(file_name, delete_words_list)
+        default_caption = remove_unwanted_words(default_caption, delete_words_list)
+    
     # Extract language and year
     language = extract_language(default_caption)
     year = extract_year(default_caption)
@@ -252,8 +399,12 @@ async def reCap(bot, message):
                 year=year
             )
             
+            # Remove unwanted words from final caption
+            if delete_words_list:
+                replaced_caption = remove_unwanted_words(replaced_caption, delete_words_list)
+            
             # Only edit if caption is different
-            if replaced_caption != default_caption:
+            if replaced_caption != message.caption:
                 await message.edit_caption(replaced_caption)
         
     except FloodWait as e:
@@ -276,11 +427,15 @@ def get_size(size):
 
 @Client.on_callback_query(filters.regex(r'^start'))
 async def start_callback(bot, query):
+    # Get bot info to access username
+    bot_info = await bot.get_me()
+    bot_username = bot_info.username
+    
     await query.message.edit_text(
         text=script.START_TXT.format(query.from_user.mention),  
         reply_markup=InlineKeyboardMarkup(
             [[
-                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/{bot.username}?startchannel=true")
+                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/{bot_username}?startchannel=true")
                 ],[
                 InlineKeyboardButton("Hᴇʟᴘ", callback_data="help"),
                 InlineKeyboardButton("Aʙᴏᴜᴛ", callback_data="about")
