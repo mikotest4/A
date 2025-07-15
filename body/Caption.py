@@ -26,7 +26,7 @@ async def strtCap(bot, message):
     keyboard = InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/{bot_username}?startchannel=true")
+                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/Furina_Capbot?startchannel=true")
             ],[
                 InlineKeyboardButton("Hᴇʟᴘ", callback_data="help"),
                 InlineKeyboardButton("Aʙᴏᴜᴛ", callback_data="about")
@@ -88,7 +88,7 @@ async def restart_bot(b, m):
     await silicon.edit("**✅️ 𝙱𝙾𝚃 𝙸𝚂 𝚁𝙴𝚂𝚃𝙰𝚁𝚃𝙴𝙳. 𝙽𝙾𝚆 𝚈𝙾𝚄 𝙲𝙰𝙽 𝚄𝚂𝙴 𝙼𝙴**")
     os.execl(sys.executable, sys.executable, *sys.argv)
 
-# UPDATED: set_cap command - Works in DMs, Groups, and Channels
+# ENHANCED: set_cap command with multiline support - Works in DMs, Groups, and Channels
 @Client.on_message(filters.command("set_cap") & (filters.private | filters.group | filters.channel))
 async def setCap(bot, message):
     print(f"set_cap command received in chat: {message.chat.id}")
@@ -119,24 +119,35 @@ async def setCap(bot, message):
             if not message.from_user:
                 return await message.reply("❌ This command can only be used by users!")
         
-        # Check if caption is provided
-        if len(message.command) < 2:
-            return await message.reply(
-                "**Usage:** `/set_cap Your caption here`\n\n**Available Variables:**\n"
-                "`{file_name}` - Original File Name\n"
-                "`{file_size}` - File Size\n"
-                "`{language}` - Language of File\n"
-                "`{year}` - Year from File\n"
-                "`{default_caption}` - Original Caption\n\n"
-                "**Example:**\n"
-                "```\n/set_cap {file_name}\n\n⚙️ Size » {file_size}\n\n╔═════ ᴊᴏɪɴ ᴡɪᴛʜ ᴜs ════╗\n💥 𝙅𝙊𝙄𝙉 :- @YourChannel\n╚═════ ᴊᴏɪɴ ᴡɪᴛʜ ᴜs ════╝```"
-            )
-        
-        # Extract caption from message
-        caption = message.text.split("/set_cap", 1)[1].strip()
+        # Check if replying to a message with multiline caption
+        if message.reply_to_message and message.reply_to_message.text:
+            caption = message.reply_to_message.text
+        else:
+            # Check if caption is provided
+            if len(message.command) < 2:
+                return await message.reply(
+                    "**Usage:** `/set_cap Your caption here`\n\n**Available Variables:**\n"
+                    "`{file_name}` - Original File Name\n"
+                    "`{file_size}` - File Size\n"
+                    "`{language}` - Language of File\n"
+                    "`{year}` - Year from File\n"
+                    "`{default_caption}` - Original Caption\n\n"
+                    "**📝 Multiple Line Support:**\n"
+                    "• Type multiple lines directly\n"
+                    "• Use `\\n` for line breaks\n"
+                    "• Reply to a message with `/set_cap`\n\n"
+                    "**Example:**\n"
+                    "```\n/set_cap {file_name}\n\n⚙️ Size » {file_size}\n\n╔═════ ᴊᴏɪɴ ᴡɪᴛʜ ᴜs ════╗\n💥 𝙅𝙊𝙄𝙉 :- @YourChannel\n╚═════ ᴊᴏɪɴ ᴡɪᴛʜ ᴜs ════╝```"
+                )
+            
+            # Extract caption from message
+            caption = message.text.split("/set_cap", 1)[1].strip()
         
         if not caption:
             return await message.reply("❌ Please provide a caption!")
+        
+        # Convert \n to actual line breaks
+        caption = caption.replace("\\n", "\n")
         
         chat_id = message.chat.id
         
