@@ -1,4 +1,5 @@
-from pyrogram import *
+from pyrogram import Client, filters
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from info import *
 import asyncio
 import sys
@@ -18,24 +19,33 @@ waiting_for_words = {}
 async def strtCap(bot, message):
     user_id = int(message.from_user.id)
     await insert(user_id)
-    
+
     # Get bot info to access username
     bot_info = await bot.get_me()
     bot_username = bot_info.username
-    
+
     keyboard = InlineKeyboardMarkup(
         [
             [
                 InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/Furina_Capbot?startchannel=true")
+            ],
+            [
+                InlineKeyboardButton("M", url="https://t.me/Yae_X_Miko"),
+                InlineKeyboardButton("A", url="https://t.me/Yae_X_Miko"),
+                InlineKeyboardButton("S", url="https://t.me/Yae_X_Miko"),
+                InlineKeyboardButton("T", url="https://t.me/Yae_X_Miko"),
+                InlineKeyboardButton("E", url="https://t.me/Yae_X_Miko"),
+                InlineKeyboardButton("R", url="https://t.me/Yae_X_Miko")
             ]
         ]
     )
+
     await message.reply_photo(
         photo=SILICON_PIC,
         caption=f"<b>Hᴇʟʟᴏ {message.from_user.mention}\n\nɪ ᴀᴍ ᴀᴜᴛᴏ ᴄᴀᴘᴛɪᴏɴ ʙᴏᴛ ᴡɪᴛʜ ᴄᴜsᴛᴏᴍ ᴄᴀᴘᴛɪᴏɴ.\n\nFᴏʀ ᴍᴏʀᴇ ɪɴғᴏ ʜᴏᴡ ᴛᴏ ᴜsᴇ ᴍᴇ ᴄʟɪᴄᴋ ᴏɴ ʜᴇʟᴘ ʙᴜᴛᴛᴏɴ ɢɪᴠᴇɴ ʙᴇʟᴏᴡ.</b>",
         reply_markup=keyboard
     )
-
+    
 @Client.on_message(filters.private & filters.user(ADMIN) & filters.command(["total_users"]))
 async def all_db_users_here(client, message):
     silicon = await message.reply_text("Please Wait....")
