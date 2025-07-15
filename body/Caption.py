@@ -26,7 +26,7 @@ async def strtCap(bot, message):
     keyboard = InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/Furina_Capbot?startchannel=true")
+                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/{bot_username}?startchannel=true")
             ],[
                 InlineKeyboardButton("Hᴇʟᴘ", callback_data="help"),
                 InlineKeyboardButton("Aʙᴏᴜᴛ", callback_data="about")
@@ -88,7 +88,7 @@ async def restart_bot(b, m):
     await silicon.edit("**✅️ 𝙱𝙾𝚃 𝙸𝚂 𝚁𝙴𝚂𝚃𝙰𝚁𝚃𝙴𝙳. 𝙽𝙾𝚆 𝚈𝙾𝚄 𝙲𝙰𝙽 𝚄𝚂𝙴 𝙼𝙴**")
     os.execl(sys.executable, sys.executable, *sys.argv)
 
-# ENHANCED: set_cap command with multiline support - Works in DMs, Groups, and Channels
+# FIXED: set_cap command with better multiline handling
 @Client.on_message(filters.command("set_cap") & (filters.private | filters.group | filters.channel))
 async def setCap(bot, message):
     print(f"set_cap command received in chat: {message.chat.id}")
@@ -137,16 +137,26 @@ async def setCap(bot, message):
                     "• Use `\\n` for line breaks\n"
                     "• Reply to a message with `/set_cap`\n\n"
                     "**Example:**\n"
-                    "```\n/set_cap {file_name}\n\n⚙️ Size » {file_size}\n\n╔═════ ᴊᴏɪɴ ᴡɪᴛʜ ᴜs ════╗\n💥 𝙅𝙊𝙄𝙉 :- @YourChannel\n╚═════ ᴊᴏɪɴ ᴡɪᴛʜ ᴜs ════╝```"
+                    "```\n/set_cap {file_name}\n\n⚙️ Size » {file_size}\n\nJoin Channel 1\nJoin Channel 2\n\n╔═════ ᴊᴏɪɴ ᴡɪᴛʜ ᴜs ════╗\n💥 𝙅𝙊𝙄𝙉 :- @YourChannel\n╚═════ ᴊᴏɪɴ ᴡɪᴛʜ ᴜs ════╝```"
                 )
             
-            # Extract caption from message
-            caption = message.text.split("/set_cap", 1)[1].strip()
+            # Extract caption from the FULL message text, not just after the command
+            full_text = message.text
+            if "\n" in full_text:
+                # If there are actual line breaks, use them
+                parts = full_text.split("\n", 1)
+                if len(parts) > 1:
+                    caption = parts[1]  # Everything after the first line
+                else:
+                    caption = full_text.split("/set_cap", 1)[1].strip()
+            else:
+                # Single line - extract after command
+                caption = full_text.split("/set_cap", 1)[1].strip()
         
         if not caption:
             return await message.reply("❌ Please provide a caption!")
         
-        # Convert \n to actual line breaks
+        # Convert \n to actual line breaks (for cases where user types \n literally)
         caption = caption.replace("\\n", "\n")
         
         chat_id = message.chat.id
