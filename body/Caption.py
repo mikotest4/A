@@ -80,38 +80,46 @@ async def restart_bot(b, m):
     await silicon.edit("**✅️ 𝙱𝙾𝚃 𝙸𝚂 𝚁𝙴𝚂𝚃𝙰𝚁𝚃𝙴𝙳. 𝙽𝙾𝚆 𝚈𝙾𝚄 𝙲𝙰𝙽 𝚄𝚂𝙴 𝙼𝙴**")
     os.execl(sys.executable, sys.executable, *sys.argv)
 
-@Client.on_message(filters.command("set_cap") & filters.group)
+# Fixed set_cap command - works in both groups and channels
+@Client.on_message(filters.command("set_cap") & (filters.group | filters.channel))
 async def setCap(bot, message):
-    # Check if user is admin of the group/channel
-    user_id = message.from_user.id
-    chat_id = message.chat.id
+    print(f"set_cap command received in chat: {message.chat.id}")
     
     try:
-        member = await bot.get_chat_member(chat_id, user_id)
-        if member.status not in ["administrator", "creator"]:
-            return await message.reply("❌ You must be an admin to use this command!")
-    except Exception as e:
-        return await message.reply("❌ Error checking admin status!")
-    
-    if len(message.command) < 2:
-        return await message.reply(
-            "**Usage:** `/set_cap Your caption here`\n\n**Available Variables:**\n"
-            "`{file_name}` - Original File Name\n"
-            "`{file_size}` - File Size\n"
-            "`{language}` - Language of File\n"
-            "`{year}` - Year from File\n"
-            "`{default_caption}` - Original Caption\n\n"
-            "**Example:**\n"
-            "```\n/set_cap {file_name}\n\n⚙️ Size » {file_size}\n\n╔═════ ᴊᴏɪɴ ᴡɪᴛʜ ᴜs ════╗\n💥 𝙅𝙊𝙄𝙉 :- @YourChannel\n╚═════ ᴊᴏɪɴ ᴡɪᴛʜ ᴜs ════╝```"
-        )
-    
-    # Get caption from message (everything after /set_cap)
-    caption = message.text.split("/set_cap", 1)[1].strip()
-    
-    if not caption:
-        return await message.reply("❌ Please provide a caption!")
-    
-    try:
+        # Check if user is admin (for groups/channels)
+        if message.chat.type in ["group", "supergroup", "channel"]:
+            user_id = message.from_user.id
+            chat_id = message.chat.id
+            
+            try:
+                member = await bot.get_chat_member(chat_id, user_id)
+                if member.status not in ["administrator", "creator"]:
+                    return await message.reply("❌ You must be an admin to use this command!")
+            except Exception as e:
+                print(f"Error checking admin status: {e}")
+                return await message.reply("❌ Error checking admin status!")
+        
+        # Check if caption is provided
+        if len(message.command) < 2:
+            return await message.reply(
+                "**Usage:** `/set_cap Your caption here`\n\n**Available Variables:**\n"
+                "`{file_name}` - Original File Name\n"
+                "`{file_size}` - File Size\n"
+                "`{language}` - Language of File\n"
+                "`{year}` - Year from File\n"
+                "`{default_caption}` - Original Caption\n\n"
+                "**Example:**\n"
+                "```\n/set_cap {file_name}\n\n⚙️ Size » {file_size}\n\n╔═════ ᴊᴏɪɴ ᴡɪᴛʜ ᴜs ════╗\n💥 𝙅𝙊𝙄𝙉 :- @YourChannel\n╚═════ ᴊᴏɪɴ ᴡɪᴛʜ ᴜs ════╝```"
+            )
+        
+        # Extract caption from message
+        caption = message.text.split("/set_cap", 1)[1].strip()
+        
+        if not caption:
+            return await message.reply("❌ Please provide a caption!")
+        
+        chat_id = message.chat.id
+        
         # Check if caption already exists
         chkData = await chnl_ids.find_one({"chnl_id": chat_id})
         if chkData:
@@ -120,29 +128,40 @@ async def setCap(bot, message):
         else:
             await addCap(chat_id, caption)
             await message.reply(f"✅ **Caption Set Successfully!**\n\n**Your Caption:**\n{caption}")
+            
     except Exception as e:
+        print(f"Error in set_cap: {e}")
         await message.reply(f"❌ Error setting caption: {str(e)}")
 
-@Client.on_message(filters.command("del_cap") & filters.group)
+# Fixed del_cap command - works in both groups and channels
+@Client.on_message(filters.command("del_cap") & (filters.group | filters.channel))
 async def delCap(bot, message):
-    # Check if user is admin of the group/channel
-    user_id = message.from_user.id
-    chat_id = message.chat.id
+    print(f"del_cap command received in chat: {message.chat.id}")
     
     try:
-        member = await bot.get_chat_member(chat_id, user_id)
-        if member.status not in ["administrator", "creator"]:
-            return await message.reply("❌ You must be an admin to use this command!")
-    except Exception as e:
-        return await message.reply("❌ Error checking admin status!")
-    
-    try:
+        # Check if user is admin (for groups/channels)
+        if message.chat.type in ["group", "supergroup", "channel"]:
+            user_id = message.from_user.id
+            chat_id = message.chat.id
+            
+            try:
+                member = await bot.get_chat_member(chat_id, user_id)
+                if member.status not in ["administrator", "creator"]:
+                    return await message.reply("❌ You must be an admin to use this command!")
+            except Exception as e:
+                print(f"Error checking admin status: {e}")
+                return await message.reply("❌ Error checking admin status!")
+        
+        chat_id = message.chat.id
         result = await chnl_ids.delete_one({"chnl_id": chat_id})
+        
         if result.deleted_count > 0:
             await message.reply("✅ **Caption Deleted Successfully!**\n\nNow I will use my default caption.")
         else:
             await message.reply("❌ No custom caption found for this chat!")
+            
     except Exception as e:
+        print(f"Error in del_cap: {e}")
         await message.reply(f"❌ Error deleting caption: {str(e)}")
 
 def extract_language(default_caption):
@@ -176,7 +195,7 @@ def extract_year(default_caption):
     match = re.search(r'\b(19[0-9]{2}|20[0-2][0-9]|2030)\b', default_caption)
     return match.group(1) if match else "2024"
 
-@Client.on_message(filters.group & ~filters.command(["set_cap", "del_cap"]))
+@Client.on_message((filters.group | filters.channel) & filters.media & ~filters.command(["set_cap", "del_cap"]))
 async def reCap(bot, message):
     if not message.media:
         return
