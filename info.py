@@ -15,10 +15,10 @@ def is_enabled(value, default):
 
 
 ADMIN = int(getenv("ADMIN", "7970350353"))
-SILICON_PIC = os.environ.get("SILICON_PIC", "https://telegra.ph/file/21a8e96b45cd6ac4d3da6.jpg")
+YAE_MIKO_PIC = os.environ.get("SILICON_PIC", "https://graph.org/file/f2a14c12b3858c49766aa-92d3f438ab56f6df1d.jpg")
 API_ID = int(getenv("API_ID", "27704224"))
 API_HASH = str(getenv("API_HASH", "c2e33826d757fe113bc154fcfabc987d"))
-BOT_TOKEN = str(getenv("BOT_TOKEN", "7819249411:AAGTXBgQ7l4Daz-wJG1lkx4Ubf1bB1e3sNI"))
+BOT_TOKEN = str(getenv("BOT_TOKEN", "7282397670:AAFT8xuILQhSFe0bYofsDQEr4cDNFY2Y_tE"))
 FORCE_SUB = os.environ.get("FORCE_SUB", "") 
 MONGO_DB = str(getenv("MONGO_DB", "mongodb+srv://Koi:aloksingh@cluster0.86wo9.mongodb.net/?retryWrites=true&w=majority",))
 DEF_CAP = str(getenv("DEF_CAP","",))
