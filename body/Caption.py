@@ -27,25 +27,25 @@ async def strtCap(bot, message):
     keyboard = InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/Furina_Capbot?startchannel=true")
+                InlineKeyboardButton("ᴍᴀᴋᴇ ᴍᴇ ʏᴏᴜʀ", url=f"https://t.me/Furina_Capbot?startchannel=true")
             ],
             [
-                InlineKeyboardButton("M", url="https://t.me/Yae_X_Miko"),
-                InlineKeyboardButton("A", url="https://t.me/Yae_X_Miko"),
-                InlineKeyboardButton("S", url="https://t.me/Yae_X_Miko"),
-                InlineKeyboardButton("T", url="https://t.me/Yae_X_Miko"),
-                InlineKeyboardButton("E", url="https://t.me/Yae_X_Miko"),
-                InlineKeyboardButton("R", url="https://t.me/Yae_X_Miko")
+                InlineKeyboardButton("ʏ", url="https://t.me/Yae_X_Miko"),
+                InlineKeyboardButton("ᴀ", url="https://t.me/Yae_X_Miko"),
+                InlineKeyboardButton("ᴇ", url="https://t.me/Yae_X_Miko"),
+                InlineKeyboardButton("ᴍ", url="https://t.me/Yae_X_Miko"),
+                InlineKeyboardButton("ɪ", url="https://t.me/Yae_X_Miko"),
+                InlineKeyboardButton("ᴋ", url="https://t.me/Yae_X_Miko"),
+                InlineKeyboardButton("ᴏ", url="https://t.me/Yae_X_Miko")
             ]
         ]
     )
 
     await message.reply_photo(
-        photo=SILICON_PIC,
+        photo=YAE_MIKO_PIC,
         caption=f"<b>Hᴇʟʟᴏ {message.from_user.mention}\n\nɪ ᴀᴍ ᴀᴜᴛᴏ ᴄᴀᴘᴛɪᴏɴ ʙᴏᴛ ᴡɪᴛʜ ᴄᴜsᴛᴏᴍ ᴄᴀᴘᴛɪᴏɴ.\n\nFᴏʀ ᴍᴏʀᴇ ɪɴғᴏ ʜᴏᴡ ᴛᴏ ᴜsᴇ ᴍᴇ ᴄʟɪᴄᴋ ᴏɴ ʜᴇʟᴘ ʙᴜᴛᴛᴏɴ ɢɪᴠᴇɴ ʙᴇʟᴏᴡ.</b>",
         reply_markup=keyboard
-    )
-    
+    )    
 @Client.on_message(filters.private & filters.user(ADMIN) & filters.command(["total_users"]))
 async def all_db_users_here(client, message):
     silicon = await message.reply_text("Please Wait....")
