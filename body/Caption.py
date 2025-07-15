@@ -88,7 +88,7 @@ async def restart_bot(b, m):
     await silicon.edit("**✅️ 𝙱𝙾𝚃 𝙸𝚂 𝚁𝙴𝚂𝚃𝙰𝚁𝚃𝙴𝙳. 𝙽𝙾𝚆 𝚈𝙾𝚄 𝙲𝙰𝙽 𝚄𝚂𝙴 𝙼𝙴**")
     os.execl(sys.executable, sys.executable, *sys.argv)
 
-# Fixed set_cap command - works in both groups and channels
+# UPDATED: set_cap command - ANY USER CAN USE
 @Client.on_message(filters.command("set_cap") & (filters.group | filters.channel))
 async def setCap(bot, message):
     print(f"set_cap command received in chat: {message.chat.id}")
@@ -98,18 +98,7 @@ async def setCap(bot, message):
         if not message.from_user:
             return await message.reply("❌ This command can only be used by users, not channels!")
         
-        # Check if user is admin (for groups/channels)
-        if message.chat.type in ["group", "supergroup", "channel"]:
-            user_id = message.from_user.id
-            chat_id = message.chat.id
-            
-            try:
-                member = await bot.get_chat_member(chat_id, user_id)
-                if member.status not in ["administrator", "creator"]:
-                    return await message.reply("❌ You must be an admin to use this command!")
-            except Exception as e:
-                print(f"Error checking admin status: {e}")
-                return await message.reply("❌ Error checking admin status!")
+        # NO ADMIN CHECK - ANY USER CAN USE THIS COMMAND
         
         # Check if caption is provided
         if len(message.command) < 2:
@@ -145,7 +134,7 @@ async def setCap(bot, message):
         print(f"Error in set_cap: {e}")
         await message.reply(f"❌ Error setting caption: {str(e)}")
 
-# Fixed del_cap command - works in both groups and channels
+# UPDATED: del_cap command - ANY USER CAN USE
 @Client.on_message(filters.command("del_cap") & (filters.group | filters.channel))
 async def delCap(bot, message):
     print(f"del_cap command received in chat: {message.chat.id}")
@@ -155,18 +144,7 @@ async def delCap(bot, message):
         if not message.from_user:
             return await message.reply("❌ This command can only be used by users, not channels!")
         
-        # Check if user is admin (for groups/channels)
-        if message.chat.type in ["group", "supergroup", "channel"]:
-            user_id = message.from_user.id
-            chat_id = message.chat.id
-            
-            try:
-                member = await bot.get_chat_member(chat_id, user_id)
-                if member.status not in ["administrator", "creator"]:
-                    return await message.reply("❌ You must be an admin to use this command!")
-            except Exception as e:
-                print(f"Error checking admin status: {e}")
-                return await message.reply("❌ Error checking admin status!")
+        # NO ADMIN CHECK - ANY USER CAN USE THIS COMMAND
         
         chat_id = message.chat.id
         result = await chnl_ids.delete_one({"chnl_id": chat_id})
@@ -180,7 +158,7 @@ async def delCap(bot, message):
         print(f"Error in del_cap: {e}")
         await message.reply(f"❌ Error deleting caption: {str(e)}")
 
-# NEW REMOVE_WORD COMMAND - FIXED
+# UPDATED: remove_word command - ANY USER CAN USE
 @Client.on_message(filters.command("remove_word") & (filters.group | filters.channel))
 async def remove_word_command(bot, message):
     print(f"remove_word command received in chat: {message.chat.id}")
@@ -190,18 +168,7 @@ async def remove_word_command(bot, message):
         if not message.from_user:
             return await message.reply("❌ This command can only be used by users, not channels!")
         
-        # Check if user is admin (for groups/channels)
-        if message.chat.type in ["group", "supergroup", "channel"]:
-            user_id = message.from_user.id
-            chat_id = message.chat.id
-            
-            try:
-                member = await bot.get_chat_member(chat_id, user_id)
-                if member.status not in ["administrator", "creator"]:
-                    return await message.reply("❌ You must be an admin to use this command!")
-            except Exception as e:
-                print(f"Error checking admin status: {e}")
-                return await message.reply("❌ Error checking admin status!")
+        # NO ADMIN CHECK - ANY USER CAN USE THIS COMMAND
         
         # Set waiting status for this user and chat
         waiting_for_words[f"{message.from_user.id}_{message.chat.id}"] = message.chat.id
@@ -215,7 +182,7 @@ async def remove_word_command(bot, message):
         print(f"Error in remove_word: {e}")
         await message.reply(f"❌ Error: {str(e)}")
 
-# Handle word input for remove_word command - FIXED
+# Handle word input for remove_word command
 @Client.on_message(filters.text & (filters.group | filters.channel))
 async def handle_word_input(bot, message):
     # Check if message is from a user (not a channel)
@@ -256,7 +223,7 @@ async def handle_word_input(bot, message):
             if user_chat_key in waiting_for_words:
                 del waiting_for_words[user_chat_key]
 
-# NEW COMMAND: Show current delete words list - FIXED
+# UPDATED: Show current delete words list - ANY USER CAN USE
 @Client.on_message(filters.command("show_delete_words") & (filters.group | filters.channel))
 async def show_delete_words(bot, message):
     try:
@@ -264,17 +231,7 @@ async def show_delete_words(bot, message):
         if not message.from_user:
             return await message.reply("❌ This command can only be used by users, not channels!")
         
-        # Check if user is admin
-        if message.chat.type in ["group", "supergroup", "channel"]:
-            user_id = message.from_user.id
-            chat_id = message.chat.id
-            
-            try:
-                member = await bot.get_chat_member(chat_id, user_id)
-                if member.status not in ["administrator", "creator"]:
-                    return await message.reply("❌ You must be an admin to use this command!")
-            except Exception as e:
-                return await message.reply("❌ Error checking admin status!")
+        # NO ADMIN CHECK - ANY USER CAN USE THIS COMMAND
         
         words_list = await get_delete_words(message.chat.id)
         
@@ -287,7 +244,7 @@ async def show_delete_words(bot, message):
     except Exception as e:
         await message.reply(f"❌ Error: {str(e)}")
 
-# NEW COMMAND: Clear delete words list - FIXED
+# UPDATED: Clear delete words list - ANY USER CAN USE
 @Client.on_message(filters.command("clear_delete_words") & (filters.group | filters.channel))
 async def clear_delete_words_command(bot, message):
     try:
@@ -295,17 +252,7 @@ async def clear_delete_words_command(bot, message):
         if not message.from_user:
             return await message.reply("❌ This command can only be used by users, not channels!")
         
-        # Check if user is admin
-        if message.chat.type in ["group", "supergroup", "channel"]:
-            user_id = message.from_user.id
-            chat_id = message.chat.id
-            
-            try:
-                member = await bot.get_chat_member(chat_id, user_id)
-                if member.status not in ["administrator", "creator"]:
-                    return await message.reply("❌ You must be an admin to use this command!")
-            except Exception as e:
-                return await message.reply("❌ Error checking admin status!")
+        # NO ADMIN CHECK - ANY USER CAN USE THIS COMMAND
         
         await clear_delete_words(message.chat.id)
         await message.reply("✅ **Delete words list cleared successfully!**")
