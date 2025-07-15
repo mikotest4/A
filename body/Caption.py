@@ -1,11 +1,15 @@
 from pyrogram import *
 from info import *
 import asyncio
+import sys
+import os
+import time
 from Script import script
 from .database import *
 import re
 from pyrogram.errors import FloodWait
 from pyrogram.types import *
+from pyrogram import errors
 
 @Client.on_message(filters.command("start") & filters.private)
 async def strtCap(bot, message):
@@ -14,7 +18,7 @@ async def strtCap(bot, message):
     keyboard = InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/CustomCaptionBot?startchannel=true")
+                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/{bot.username}?startchannel=true")
             ],[
                 InlineKeyboardButton("Hᴇʟᴘ", callback_data="help"),
                 InlineKeyboardButton("Aʙᴏᴜᴛ", callback_data="about")
@@ -29,8 +33,8 @@ async def strtCap(bot, message):
         reply_markup=keyboard
     )
 
-@Client.on_message(filters.private & filters.user(ADMIN)  & filters.command(["total_users"]))
-async def all_db_users_here(client,message):
+@Client.on_message(filters.private & filters.user(ADMIN) & filters.command(["total_users"]))
+async def all_db_users_here(client, message):
     silicon = await message.reply_text("Please Wait....")
     silicon_botz = await total_user()
     await silicon.edit(f"Tᴏᴛᴀʟ Usᴇʀ :- `{silicon_botz}`")
@@ -38,7 +42,7 @@ async def all_db_users_here(client,message):
 @Client.on_message(filters.private & filters.user(ADMIN) & filters.command(["broadcast"]))
 async def broadcast(bot, message):
     if (message.reply_to_message):
-        silicon = await message.reply_text("Geting All ids from database..\n Please wait")
+        silicon = await message.reply_text("Getting All ids from database..\n Please wait")
         all_users = await getid()
         tot = await total_user()
         success = 0
@@ -48,14 +52,14 @@ async def broadcast(bot, message):
         await silicon.edit(f"ʙʀᴏᴀᴅᴄᴀsᴛɪɴɢ...")
         async for user in all_users:
             try:
-                time.sleep(1)
+                await asyncio.sleep(1)
                 await message.reply_to_message.copy(user['_id'])
                 success += 1
             except errors.InputUserDeactivated:
-                deactivated +=1
+                deactivated += 1
                 await delete({"_id": user['_id']})
             except errors.UserIsBlocked:
-                blocked +=1
+                blocked += 1
                 await delete({"_id": user['_id']})
             except Exception as e:
                 failed += 1
@@ -64,8 +68,10 @@ async def broadcast(bot, message):
             try:
                 await silicon.edit(f"<u>ʙʀᴏᴀᴅᴄᴀsᴛ ᴘʀᴏᴄᴇssɪɴɢ</u>\n\n• ᴛᴏᴛᴀʟ ᴜsᴇʀs: {tot}\n• sᴜᴄᴄᴇssғᴜʟ: {success}\n• ʙʟᴏᴄᴋᴇᴅ ᴜsᴇʀs: {blocked}\n• ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄᴏᴜɴᴛs: {deactivated}\n• ᴜɴsᴜᴄᴄᴇssғᴜʟ: {failed}")
             except FloodWait as e:
-                await asyncio.sleep(t.x)
+                await asyncio.sleep(e.x)
         await silicon.edit(f"<u>ʙʀᴏᴀᴅᴄᴀsᴛ ᴄᴏᴍᴘʟᴇᴛᴇᴅ</u>\n\n• ᴛᴏᴛᴀʟ ᴜsᴇʀs: {tot}\n• sᴜᴄᴄᴇssғᴜʟ: {success}\n• ʙʟᴏᴄᴋᴇᴅ ᴜsᴇʀs: {blocked}\n• ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄᴏᴜɴᴛs: {deactivated}\n• ᴜɴsᴜᴄᴄᴇssғᴜʟ: {failed}")
+    else:
+        await message.reply_text("Reply to a message to broadcast it to all users.")
 
 @Client.on_message(filters.private & filters.user(ADMIN) & filters.command("restart"))
 async def restart_bot(b, m):
@@ -74,95 +80,188 @@ async def restart_bot(b, m):
     await silicon.edit("**✅️ 𝙱𝙾𝚃 𝙸𝚂 𝚁𝙴𝚂𝚃𝙰𝚁𝚃𝙴𝙳. 𝙽𝙾𝚆 𝚈𝙾𝚄 𝙲𝙰𝙽 𝚄𝚂𝙴 𝙼𝙴**")
     os.execl(sys.executable, sys.executable, *sys.argv)
 
-@Client.on_message(filters.command("set_cap") & filters.channel)
+@Client.on_message(filters.command("set_cap") & filters.group)
 async def setCap(bot, message):
+    # Check if user is admin of the group/channel
+    user_id = message.from_user.id
+    chat_id = message.chat.id
+    
+    try:
+        member = await bot.get_chat_member(chat_id, user_id)
+        if member.status not in ["administrator", "creator"]:
+            return await message.reply("❌ You must be an admin to use this command!")
+    except Exception as e:
+        return await message.reply("❌ Error checking admin status!")
+    
     if len(message.command) < 2:
         return await message.reply(
-            "Usᴀɢᴇ: **/set_cap 𝑌𝑜𝑢𝑟 𝑐𝑎𝑝𝑡𝑖𝑜𝑛 𝑈𝑠𝑒 <code>{file_name}</code> 𝑇𝑜 𝑠ℎ𝑜𝑤 𝑦𝑜𝑢𝑟 𝐹𝑖𝑙𝑒 𝑁𝑎𝑚𝑒.\n\n𝑈𝑠𝑒<code>{file_size}</code> 𝑇𝑜 𝑠ℎ𝑜𝑤 𝑦𝑜𝑢𝑟 𝐹𝑖𝑙𝑒 𝑆𝑖𝑧𝑒/n/n✓ 𝑀𝑎𝑦 𝐵𝑒 𝑁𝑜𝑤 𝑌𝑜𝑢 𝑎𝑟𝑒 𝑐𝑙𝑒𝑎𝑟💫**"
+            "**Usage:** `/set_cap Your caption here`\n\n**Available Variables:**\n"
+            "`{file_name}` - Original File Name\n"
+            "`{file_size}` - File Size\n"
+            "`{language}` - Language of File\n"
+            "`{year}` - Year from File\n"
+            "`{default_caption}` - Original Caption\n\n"
+            "**Example:**\n"
+            "```\n/set_cap {file_name}\n\n⚙️ Size » {file_size}\n\n╔═════ ᴊᴏɪɴ ᴡɪᴛʜ ᴜs ════╗\n💥 𝙅𝙊𝙄𝙉 :- @YourChannel\n╚═════ ᴊᴏɪɴ ᴡɪᴛʜ ᴜs ════╝```"
         )
-    chnl_id = message.chat.id
-    caption = (
-        message.text.split(" ", 1)[1] if len(message.text.split(" ", 1)) > 1 else None
-    )
-    chkData = await chnl_ids.find_one({"chnl_id": chnl_id})
-    if chkData:
-        await updateCap(chnl_id, caption)
-        return await message.reply(f"Your New Caption: {caption}")
-    else:
-        await addCap(chnl_id, caption)
-        return await message.reply(f"Yᴏᴜʀ Nᴇᴡ Cᴀᴘᴛɪᴏɴ Is: {caption}")
-
-@Client.on_message(filters.command("del_cap") & filters.channel)
-async def delCap(_, msg):
-    chnl_id = msg.chat.id
+    
+    # Get caption from message (everything after /set_cap)
+    caption = message.text.split("/set_cap", 1)[1].strip()
+    
+    if not caption:
+        return await message.reply("❌ Please provide a caption!")
+    
     try:
-        await chnl_ids.delete_one({"chnl_id": chnl_id})
-        return await msg.reply("<b><i>✓ Sᴜᴄᴄᴇssғᴜʟʟʏ... Dᴇʟᴇᴛᴇᴅ Yᴏᴜʀ Cᴀᴘᴛɪᴏɴ Nᴏᴡ I ᴀᴍ Usɪɴɢ Mʏ Dᴇғᴀᴜʟᴛ Cᴀᴘᴛɪᴏɴ </i></b>")
+        # Check if caption already exists
+        chkData = await chnl_ids.find_one({"chnl_id": chat_id})
+        if chkData:
+            await updateCap(chat_id, caption)
+            await message.reply(f"✅ **Caption Updated Successfully!**\n\n**New Caption:**\n{caption}")
+        else:
+            await addCap(chat_id, caption)
+            await message.reply(f"✅ **Caption Set Successfully!**\n\n**Your Caption:**\n{caption}")
     except Exception as e:
-        e_val = await msg.replay(f"ERR I GOT: {e}")
-        await asyncio.sleep(5)
-        await e_val.delete()
-        return
+        await message.reply(f"❌ Error setting caption: {str(e)}")
+
+@Client.on_message(filters.command("del_cap") & filters.group)
+async def delCap(bot, message):
+    # Check if user is admin of the group/channel
+    user_id = message.from_user.id
+    chat_id = message.chat.id
+    
+    try:
+        member = await bot.get_chat_member(chat_id, user_id)
+        if member.status not in ["administrator", "creator"]:
+            return await message.reply("❌ You must be an admin to use this command!")
+    except Exception as e:
+        return await message.reply("❌ Error checking admin status!")
+    
+    try:
+        result = await chnl_ids.delete_one({"chnl_id": chat_id})
+        if result.deleted_count > 0:
+            await message.reply("✅ **Caption Deleted Successfully!**\n\nNow I will use my default caption.")
+        else:
+            await message.reply("❌ No custom caption found for this chat!")
+    except Exception as e:
+        await message.reply(f"❌ Error deleting caption: {str(e)}")
 
 def extract_language(default_caption):
-    language_pattern = r'\b(Hindi|English|Tamil|Telugu|Malayalam|Kannada|Hin)\b'#Contribute More Language If You Have
+    if not default_caption:
+        return "Hindi-English"
+    
+    language_pattern = r'\b(Hindi|English|Tamil|Telugu|Malayalam|Kannada|Bengali|Marathi|Gujarati|Punjabi|Urdu|Hin|Eng|Tam|Tel|Mal|Kan|Ben|Mar|Guj|Pun|Urd)\b'
     languages = set(re.findall(language_pattern, default_caption, re.IGNORECASE))
+    
     if not languages:
         return "Hindi-English"
-    return ", ".join(sorted(languages, key=str.lower))
+    
+    # Convert short forms to full names
+    lang_map = {
+        'Hin': 'Hindi', 'Eng': 'English', 'Tam': 'Tamil', 'Tel': 'Telugu',
+        'Mal': 'Malayalam', 'Kan': 'Kannada', 'Ben': 'Bengali', 'Mar': 'Marathi',
+        'Guj': 'Gujarati', 'Pun': 'Punjabi', 'Urd': 'Urdu'
+    }
+    
+    full_languages = []
+    for lang in languages:
+        full_languages.append(lang_map.get(lang, lang))
+    
+    return ", ".join(sorted(set(full_languages), key=str.lower))
 
 def extract_year(default_caption):
-    match = re.search(r'\b(19\d{2}|20\d{2})\b', default_caption)
-    return match.group(1) if match else None
+    if not default_caption:
+        return "2024"
+    
+    # Look for 4-digit years between 1900-2030
+    match = re.search(r'\b(19[0-9]{2}|20[0-2][0-9]|2030)\b', default_caption)
+    return match.group(1) if match else "2024"
 
-@Client.on_message(filters.channel)
+@Client.on_message(filters.group & ~filters.command(["set_cap", "del_cap"]))
 async def reCap(bot, message):
+    if not message.media:
+        return
+    
     chnl_id = message.chat.id
-    default_caption = message.caption
-    if message.media:
-        for file_type in ("video", "audio", "document", "voice"):
-            obj = getattr(message, file_type, None)
-            if obj and hasattr(obj, "file_name"):
-                file_name = obj.file_name
-                file_size = obj.file_size
-                language = extract_language(default_caption)
-                year = extract_year(default_caption)
-                file_name = (
-                    re.sub(r"@\w+\s*", "", file_name)
-                    .replace("_", " ")
-                    .replace(".", " ")
-                )
-                cap_dets = await chnl_ids.find_one({"chnl_id": chnl_id})
-                try:
-                    if cap_dets:
-                        cap = cap_dets["caption"]
-                        replaced_caption = cap.format(file_name=file_name, file_size=get_size(file_size), default_caption=default_caption, language=language, year=year)
-                        await message.edit(replaced_caption)
-                    else:
-                        replaced_caption = DEF_CAP.format(file_name=file_name, file_size=get_size(file_size), default_caption=default_caption, language=language, year=year)
-                        await message.edit(replaced_caption)
-                except FloodWait as e:
-                    await asyncio.sleep(e.x)
-                    continue
-    return
+    default_caption = message.caption or ""
+    
+    # Process different media types
+    file_name = None
+    file_size = None
+    
+    if message.document:
+        file_name = message.document.file_name
+        file_size = message.document.file_size
+    elif message.video:
+        file_name = getattr(message.video, 'file_name', None) or f"video_{message.video.file_unique_id}.mp4"
+        file_size = message.video.file_size
+    elif message.audio:
+        file_name = getattr(message.audio, 'file_name', None) or f"audio_{message.audio.file_unique_id}.mp3"
+        file_size = message.audio.file_size
+    elif message.voice:
+        file_name = f"voice_{message.voice.file_unique_id}.ogg"
+        file_size = message.voice.file_size
+    elif message.photo:
+        file_name = f"photo_{message.photo.file_unique_id}.jpg"
+        file_size = message.photo.file_size
+    
+    if not file_name or not file_size:
+        return
+    
+    # Clean file name
+    file_name = re.sub(r"@\w+\s*", "", file_name).replace("_", " ").replace(".", " ")
+    
+    # Extract language and year
+    language = extract_language(default_caption)
+    year = extract_year(default_caption)
+    
+    try:
+        # Get custom caption or use default
+        cap_dets = await chnl_ids.find_one({"chnl_id": chnl_id})
+        
+        if cap_dets and cap_dets.get("caption"):
+            caption_template = cap_dets["caption"]
+        else:
+            caption_template = DEF_CAP if DEF_CAP else default_caption
+        
+        # Replace variables in caption
+        if caption_template:
+            replaced_caption = caption_template.format(
+                file_name=file_name,
+                file_size=get_size(file_size),
+                default_caption=default_caption,
+                language=language,
+                year=year
+            )
+            
+            # Only edit if caption is different
+            if replaced_caption != default_caption:
+                await message.edit_caption(replaced_caption)
+        
+    except FloodWait as e:
+        await asyncio.sleep(e.x)
+    except Exception as e:
+        print(f"Error in reCap: {e}")
 
 # Size conversion function
 def get_size(size):
-    units = ["Bytes", "Kʙ", "Mʙ", "Gʙ", "Tʙ", "Pʙ", "Eʙ"]
+    if not size:
+        return "Unknown"
+    
+    units = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB"]
     size = float(size)
     i = 0
-    while size >= 1024.0 and i < len(units) - 1:  # Changed the condition to stop at the last unit
+    while size >= 1024.0 and i < len(units) - 1:
         i += 1
         size /= 1024.0
-    return "%.2f %s" % (size, units[i])
+    return f"{size:.2f} {units[i]}"
 
 @Client.on_callback_query(filters.regex(r'^start'))
-async def start(bot, query):
+async def start_callback(bot, query):
     await query.message.edit_text(
         text=script.START_TXT.format(query.from_user.mention),  
         reply_markup=InlineKeyboardMarkup(
             [[
-                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"http://t.me/CustomCaptionBot?startchannel=true")
+                InlineKeyboardButton("➕️ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ➕️", url=f"https://t.me/{bot.username}?startchannel=true")
                 ],[
                 InlineKeyboardButton("Hᴇʟᴘ", callback_data="help"),
                 InlineKeyboardButton("Aʙᴏᴜᴛ", callback_data="about")
@@ -172,35 +271,32 @@ async def start(bot, query):
             ]]
         ),
         disable_web_page_preview=True
-)
+    )
 
 @Client.on_callback_query(filters.regex(r'^help'))
-async def help(bot, query):
+async def help_callback(bot, query):
     await query.message.edit_text(
         text=script.HELP_TXT,
         reply_markup=InlineKeyboardMarkup(
             [[
-            InlineKeyboardButton('About', callback_data='about')
+                InlineKeyboardButton('About', callback_data='about')
             ],[
-            InlineKeyboardButton('↩ ʙᴀᴄᴋ', callback_data='start')
+                InlineKeyboardButton('↩ ʙᴀᴄᴋ', callback_data='start')
             ]]
         ),
         disable_web_page_preview=True    
-)
-
+    )
 
 @Client.on_callback_query(filters.regex(r'^about'))
-async def about(bot, query):
+async def about_callback(bot, query):
     await query.message.edit_text(
         text=script.ABOUT_TXT,
         reply_markup=InlineKeyboardMarkup(
             [[
-            InlineKeyboardButton('ʜᴏᴡ ᴛᴏ ᴜsᴇ ᴍᴇ ❓', callback_data='help')
+                InlineKeyboardButton('ʜᴏᴡ ᴛᴏ ᴜsᴇ ᴍᴇ ❓', callback_data='help')
             ],[
-            InlineKeyboardButton('↩ ʙᴀᴄᴋ', callback_data='start')
+                InlineKeyboardButton('↩ ʙᴀᴄᴋ', callback_data='start')
             ]]
         ),
         disable_web_page_preview=True 
-
-)
-
+    )
